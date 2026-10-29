@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Cloud DevOps Task Manager</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 40px auto; max-width: 650px; padding: 0 20px; background: #f4f6f8; color: #333; }
+        .card { background: #fff; padding: 24px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 12px; }
+        .badge { background: #007bff; color: white; padding: 4px 10px; border-radius: 12px; font-size: 0.85rem; }
+        ul { list-style: none; padding: 0; }
+        li { background: #fafafa; border: 1px solid #eee; padding: 12px; margin-bottom: 8px; border-radius: 4px; display: flex; justify-content: space-between; }
+        input, button { padding: 10px; border-radius: 4px; border: 1px solid #ccc; font-size: 1rem; }
+        button { background: #28a745; color: white; border: none; cursor: pointer; }
+        button:hover { background: #218838; }
+        .form-row { display: flex; gap: 8px; margin-top: 16px; }
+        .form-row input { flex: 1; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="header">
+            <h2>Cloud Task Manager</h2>
+            <span class="badge" id="appVersion">Version: loading...</span>
+        </div>
+        <p>Managed via automated GitHub Actions CI/CD and Kubernetes.</p>
+        <ul id="taskList"></ul>
+        <div class="form-row">
+            <input type="text" id="taskInput" placeholder="Enter task title...">
+            <button onclick="createTask()">Add Task</button>
+        </div>
+    </div>
+
+    <script>
+        async function loadMeta() {
+            const res = await fetch('/api/tasks/version');
+            const data = await res.json();
+            document.getElementById('appVersion').innerText = `Version: ${data.version} (${data.environment})`;
+        }
+
+        async function loadTasks() {
+            const res = await fetch('/api/tasks');
+            const tasks = await res.json();
+            const list = document.getElementById('taskList');
+            list.innerHTML = '';
+            tasks.forEach(t => {
+                const li = document.createElement('li');
+                li.innerHTML = `<strong>${t.title}</strong> <span>[${t.status}]</span>`;
+                list.appendChild(li);
+            });
+        }
+
+        async function createTask() {
+            const input = document.getElementById('taskInput');
+            if (!input.value.trim()) return;
+            await fetch('/api/tasks', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title: input.value, status: 'PENDING' })
+            });
+            input.value = '';
+            loadTasks();
+        }
+
+        loadMeta();
+        loadTasks();
+    </script>
+</body>
+</html>

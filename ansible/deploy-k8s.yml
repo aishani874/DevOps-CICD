@@ -1,0 +1,43 @@
+---
+- name: Deploy Java Application to Kubernetes Cluster
+  hosts: localhost
+  gather_facts: false
+  vars:
+    image_tag: "{{ lookup('env', 'IMAGE_TAG') | default('latest', true) }}"
+    docker_username: "{{ lookup('env', 'DOCKER_USERNAME') }}"
+  tasks:
+    - name: Apply Namespace manifest
+      kubernetes.core.k8s:
+        state: present
+        src: ../k8s/namespace.yml
+
+    - name: Deploy Service manifest
+      kubernetes.core.k8s:
+        state: present
+        src: ../k8s/service.yml
+
+    - name: Update Deployment with new image tag and apply
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: cloud-demo-app
+            namespace: devops-demo
+          spec:
+            template:
+              spec:
+                containers:
+                  - name: cloud-demo-app
+                    image: "{{ docker_username }}/cloud-demo-app:{{ image_tag }}"
+
+    - name: Verify Deployment rollout status
+      ansible.builtin.command: >
+        kubectl rollout status deployment/cloud-demo-app -n devops-demo --timeout=120s
+      register: rollout_result
+      changed_when: false
+
+    - name: Print rollout output
+      ansible.builtin.debug:
+        msg: "{{ rollout_result.stdout }}"
