@@ -17,8 +17,7 @@ spec:
     spec:
       containers:
       - name: cloud-demo-app
-        # Replace <DOCKERHUB_USERNAME> with your Docker Hub ID
-        image: <DOCKERHUB_USERNAME>/cloud-demo-app:latest
+        image: aishani87/cloud-demo-app:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 8082
