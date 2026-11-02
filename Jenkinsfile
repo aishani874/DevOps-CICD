@@ -65,20 +65,24 @@ pipeline {
             }
         }
 
-        stage('Deploy via Ansible to Kubernetes') {
+        stage('Deploy to Kubernetes') {
             steps {
-                echo 'Running Ansible Playbook inside WSL to update Kubernetes cluster...'
+                echo 'Deploying application to Kubernetes via kubectl...'
                 withCredentials([file(credentialsId: "${KUBECONFIG_CRED_ID}", variable: 'KUBECONFIG_FILE')]) {
                     sh """
-                        # Convert Windows backslashes and paths to WSL format
-                        WSL_KUBECONFIG=\$(wsl wslpath -u "${KUBECONFIG_FILE}")
-                        WSL_WORKSPACE=\$(wsl wslpath -u "\$WORKSPACE")
+                        export KUBECONFIG="${KUBECONFIG_FILE}"
 
-                        wsl bash -c "export KUBECONFIG=\$WSL_KUBECONFIG && \
-                                     export IMAGE_TAG=${IMAGE_TAG} && \
-                                     export DOCKER_USERNAME=${DOCKER_HUB_USER} && \
-                                     cd \$WSL_WORKSPACE && \
-                                     ansible-playbook -i ansible/inventory.ini ansible/deploy-k8s.yml"
+                        # Ensure namespace exists
+                        kubectl apply -f k8s/namespace.yml
+
+                        # Ensure service is created/updated
+                        kubectl apply -f k8s/service.yml
+
+                        # Apply base deployment
+                        kubectl apply -f k8s/deployment.yml
+
+                        # Update the image to trigger rolling deployment with the current build tag
+                        kubectl set image deployment/cloud-demo-app cloud-demo-app=${DOCKER_HUB_USER}/${IMAGE_NAME}:${IMAGE_TAG} -n devops-demo
                     """
                 }
             }
