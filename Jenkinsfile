@@ -68,22 +68,19 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                 echo 'Deploying application to Kubernetes via kubectl...'
-                withCredentials([file(credentialsId: "${KUBECONFIG_CRED_ID}", variable: 'KUBECONFIG_FILE')]) {
-                    sh """
-                        export KUBECONFIG="${KUBECONFIG_FILE}"
-
-                        # Ensure namespace exists
-                        kubectl apply -f k8s/namespace.yml
-
-                        # Ensure service is created/updated
-                        kubectl apply -f k8s/service.yml
-
-                        # Apply base deployment
-                        kubectl apply -f k8s/deployment.yml
-
-                        # Update the image to trigger rolling deployment with the current build tag
-                        kubectl set image deployment/cloud-demo-app cloud-demo-app=${DOCKER_HUB_USER}/${IMAGE_NAME}:${IMAGE_TAG} -n devops-demo
-                    """
+                withCredentials([file(credentialsId: "${KUBECONFIG_CRED_ID}", variable: 'KUBE_FILE')]) {
+            
+                    withEnv([
+                        "TARGET_IMAGE=${DOCKER_HUB_USER.toLowerCase()}/${IMAGE_NAME.toLowerCase()}:${IMAGE_TAG}"
+                    ]) {
+                        sh '''
+                            export KUBECONFIG="$KUBE_FILE"
+                            kubectl apply -f k8s/namespace.yml
+                            kubectl apply -f k8s/service.yml
+                            kubectl apply -f k8s/deployment.yml
+                            kubectl set image deployment/cloud-demo-app cloud-demo-app="$TARGET_IMAGE" -n devops-demo
+                        '''
+                    }
                 }
             }
         }
