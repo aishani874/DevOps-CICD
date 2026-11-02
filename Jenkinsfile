@@ -67,13 +67,18 @@ pipeline {
 
         stage('Deploy via Ansible to Kubernetes') {
             steps {
-                echo 'Running Ansible Playbook to update Kubernetes cluster...'
+                echo 'Running Ansible Playbook inside WSL to update Kubernetes cluster...'
                 withCredentials([file(credentialsId: "${KUBECONFIG_CRED_ID}", variable: 'KUBECONFIG_FILE')]) {
                     sh """
-                        export KUBECONFIG=\$KUBECONFIG_FILE
-                        export IMAGE_TAG=${IMAGE_TAG}
-                        export DOCKER_USERNAME=${DOCKER_HUB_USER}
-                        ansible-playbook -i ansible/inventory.ini ansible/deploy-k8s.yml
+                        # Convert Windows backslashes and paths to WSL format
+                        WSL_KUBECONFIG=\$(wsl wslpath -u "${KUBECONFIG_FILE}")
+                        WSL_WORKSPACE=\$(wsl wslpath -u "\$WORKSPACE")
+
+                        wsl bash -c "export KUBECONFIG=\$WSL_KUBECONFIG && \
+                                     export IMAGE_TAG=${IMAGE_TAG} && \
+                                     export DOCKER_USERNAME=${DOCKER_HUB_USER} && \
+                                     cd \$WSL_WORKSPACE && \
+                                     ansible-playbook -i ansible/inventory.ini ansible/deploy-k8s.yml"
                     """
                 }
             }
