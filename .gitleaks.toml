@@ -1,0 +1,9 @@
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Ignore build artifacts, tests, and false positives"
+paths = [
+    '''target/''',
+    '''\.git/'''
+]

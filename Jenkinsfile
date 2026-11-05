@@ -22,6 +22,33 @@ pipeline {
             }
         }
 
+        stage('Security Scan (Gitleaks)') {
+            steps {
+                echo 'Running Gitleaks secret detection scan...'
+                sh '''
+                    docker run --rm \
+                      -v "$WORKSPACE":/repo \
+                      zricethezav/gitleaks:latest \
+                      detect \
+                      --source="/repo" \
+                      --verbose \
+                      --report-format=json \
+                      --report-path=/repo/gitleaks-report.json || EXIT_CODE=$?
+
+                    if [ "$EXIT_CODE" != "" ] && [ "$EXIT_CODE" -ne 0 ]; then
+                        echo "CRITICAL: Hardcoded secrets detected by Gitleaks! Failing build."
+                        exit 1
+                    fi
+                    echo "Gitleaks scan passed. No secrets found."
+                '''
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'gitleaks-report.json', allowEmptyArchive: true
+                }
+            }
+        }
+
         stage('Compile & Test (Maven)') {
             steps {
                 echo 'Compiling code and running unit tests...'
