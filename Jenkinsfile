@@ -26,16 +26,17 @@ pipeline {
             steps {
                 echo 'Running Gitleaks secret detection scan...'
                 sh '''
+                    export MSYS_NO_PATHCONV=1
                     docker run --rm \
-                      -v "$WORKSPACE":/repo \
+                      -v "$PWD":/repo \
                       zricethezav/gitleaks:latest \
                       detect \
                       --source="/repo" \
                       --verbose \
                       --report-format=json \
-                      --report-path=/repo/gitleaks-report.json || EXIT_CODE=$?
+                      --report-path="/repo/gitleaks-report.json" || EXIT_CODE=$?
 
-                    if [ "$EXIT_CODE" != "" ] && [ "$EXIT_CODE" -ne 0 ]; then
+                    if [ -n "$EXIT_CODE" ] && [ "$EXIT_CODE" -ne 0 ]; then
                         echo "CRITICAL: Hardcoded secrets detected by Gitleaks! Failing build."
                         exit 1
                     fi
