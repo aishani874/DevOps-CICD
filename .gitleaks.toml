@@ -2,7 +2,7 @@
 useDefault = true
 
 [allowlist]
-description = "Ignore build artifacts, tests, and false positives"
+description = "Ignore build artifacts and git internals"
 paths = [
     '''target/''',
     '''\.git/'''
