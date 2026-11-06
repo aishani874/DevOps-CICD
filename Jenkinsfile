@@ -24,7 +24,7 @@ pipeline {
 
         stage('Security Scan (Gitleaks)') {
             steps {
-                echo 'Running Gitleaks secret detection scan...'
+                echo 'Running Gitleaks secret detection scan on latest commit...'
                 sh '''
                     export MSYS_NO_PATHCONV=1
                     docker run --rm \
@@ -32,6 +32,7 @@ pipeline {
                       zricethezav/gitleaks:latest \
                       detect \
                       --source="/repo" \
+                      --log-opts="-1" \
                       --verbose \
                       --report-format=json \
                       --report-path="/repo/gitleaks-report.json" || EXIT_CODE=$?
@@ -40,7 +41,7 @@ pipeline {
                         echo "CRITICAL: Hardcoded secrets detected by Gitleaks! Failing build."
                         exit 1
                     fi
-                    echo "Gitleaks scan passed. No secrets found."
+                    echo "Gitleaks scan passed. No secrets found in latest commit."
                 '''
             }
             post {
