@@ -1,0 +1,10 @@
+{
+  "type": "service_account",
+  "project_id": "devops-cicd-cia2",
+  "private_key_id": "d1e2f3a4b5c67890abcdef1234567890abcdef12",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC7rDummyKeyForGitleaksTestingOnlyDoNotUseInProd1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890abcdefghijklmnopqrstuvwxyz/==\n-----END PRIVATE KEY-----\n",
+  "client_email": "test-runner@devops-cicd-cia2.tuhiisthebest@gmail.com",
+  "client_id": "109876543210987654321",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token"
+}
