@@ -32,7 +32,7 @@ pipeline {
                       zricethezav/gitleaks:latest \
                       detect \
                       --source="/repo" \
-                      --log-opts="-1" \
+                      --log-opts="-7" \
                       --verbose \
                       --report-format=json \
                       --report-path="/repo/gitleaks-report.json" || EXIT_CODE=$?
